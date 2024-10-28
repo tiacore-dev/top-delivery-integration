@@ -1,0 +1,4 @@
+zeep
+puthon-dotenv
+requests
+flask
