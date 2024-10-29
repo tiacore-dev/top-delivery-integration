@@ -8,6 +8,8 @@ import os
 from dotenv import load_dotenv
 import logging
 
+from utils import serialize_dates
+
 load_dotenv()
 logger = logging.getLogger(__name__)
 
@@ -28,32 +30,44 @@ session = requests.Session()
 session.auth = HTTPBasicAuth(login_soap, password_soap)
 client = zeep.Client(wsdl=wsdl_url, transport=Transport(session=session))
 
+
+
+
 # 2.1 Получить все отправления заказов, которые ушли со склада ТД, но еще не приняты
 def get_shipments():
     logger.info("Запуск метода get_shipments")
     response = client.service.getShipmentsByParams(
         auth=auth_data,
-        #shipmentDirection={'receiverId': 349},
-        shipmentDirection={'receiverId': 520},
+        shipmentDirection={'receiverId': 418},
         shipmentStatus={'id': '3'}
     )
     logger.info(f"Ответ от get_shipments: {response}")
+
     # Преобразуем ответ в словарь перед возвратом
-    return serialize_object(response)
+    shipments = serialize_object(response)
+
+    # Преобразуем все даты и время в строки
+    shipments = serialize_dates(shipments)
+
+    return shipments
 
 # 2.2 Получить список заказов для каждого отправления
 def get_orders(shipment_id):
     logger.info(f"Запуск метода get_orders с параметром shipment_id={shipment_id}")
     response = client.service.getOrdersByParams(auth=auth_data, currentShipment=shipment_id)
     logger.info(f"Ответ от get_orders: {response}")
-    return serialize_object(response)
+    orders = serialize_object(response)
+    orders = serialize_dates(orders)
+    return orders
 
 # Получить детальную информацию по каждому заказу
 def get_order_info(order_id):
     logger.info(f"Запуск метода get_order_info с параметром order_id={order_id}")
     response = client.service.getOrdersInfo(auth=auth_data, order={'orderId': order_id})
     logger.info(f"Ответ от get_order_info: {response}")
-    return serialize_object(response)
+    order_info = serialize_object(response)
+    order_info = serialize_dates(order_info)
+    return order_info
 
 # 2.3 Передать финальный статус заказа в ТД
 def set_final_status(order_id, bar_code, status, deny_type=None, date_fact_delivery=None, payment_type='CARD', client_paid=0):
