@@ -79,11 +79,11 @@ def set_final_status(auth_data, order_id, bar_code, status, deny_type=None, date
     return serialize_object(response)
 
 # 2.4 Сохранить результат приема на складе
-def save_scanning_results(auth_data, shipment_id, order_ids):
-    logger.info(f"Запуск метода save_scanning_results с параметрами shipment_id={shipment_id}, order_ids={order_ids}")
+def save_scanning_results(auth_data, shipment_id, orders):
+    logger.info(f"Запуск метода save_scanning_results с параметрами shipment_id={shipment_id}, order_ids={orders}")
     
     # Формируем словарь для передачи заказов
-    orders = [{'orderId': order_id} for order_id in order_ids]
+    #orders = [{'orderId': order_id} for order_id in order_ids]
     
     response = client.service.saveScanningResults(auth=auth_data, shipmentId=shipment_id, orders=orders)
     logger.info(f"Ответ от save_scanning_results: {response}")

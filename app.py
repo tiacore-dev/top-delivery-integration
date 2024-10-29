@@ -55,8 +55,8 @@ def save_scanning_results():
     data = request.json
     auth_data = data['auth']
     shipment_id = data['shipment_id']
-    order_ids = [order['orderId'] for order in data['order_ids']]
-    
+    #order_ids = [order['orderId'] for order in data['order_ids']]
+    order_ids=data['order_ids']
     response = td.save_scanning_results(auth_data, shipment_id, order_ids)
     return jsonify(response)
 
