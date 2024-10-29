@@ -9,27 +9,27 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-@app.route('/api/getShipmentsByParams', methods=['GET'])
+@app.route('/getShipmentsByParams', methods=['GET'])
 def get_shipment():
     logger.info('Вызывается getShipmentsByParams')
     response = td.get_shipments()
     return jsonify(response)
 
-@app.route('/api/getOrdersByParams', methods=['POST'])
+@app.route('/getOrdersByParams', methods=['POST'])
 def get_orders_by_params():
     data = request.json
     shipment_id = data['shipment_id']
     orders = td.get_orders(shipment_id)
     return jsonify(orders)
 
-@app.route('/api/getOrsersInfo', methods = ['POST'])
+@app.route('/getOrdersInfo', methods = ['POST'])
 def get_order_info():
     data = request.json
     order_id=data['order_id']
     order_info = td.get_order_info(order_id)
     return jsonify(order_info)
 
-@app.route('/api/setOrdersFinalStatus', methods=['POST'])
+@app.route('/setOrdersFinalStatus', methods=['POST'])
 def set_orders_final_status():
     data = request.json
     order_id = data['order_id']
@@ -44,7 +44,7 @@ def set_orders_final_status():
     response = td.set_final_status(order_id, bar_code, status, deny_type, date_fact_delivery, payment_type, client_paid)
     return jsonify(response)
 
-@app.route('/api/saveScanningResults', methods=['POST'])
+@app.route('/saveScanningResults', methods=['POST'])
 def save_scanning_results():
     data = request.json
     shipment_id = data['shipment_id']
@@ -53,7 +53,7 @@ def save_scanning_results():
     response = td.save_scanning_results(shipment_id, order_ids)
     return jsonify(response)
 
-@app.route('/api/setOrderProblemStatus', methods = ['POST'])
+@app.route('/setOrderProblemStatus', methods = ['POST'])
 def set_order_problem_status():
     data = request.json
     order_id = data['order_id']
@@ -63,7 +63,7 @@ def set_order_problem_status():
     return jsonify(response)
 
 
-@app.route('/api/setOrdersSentToDelivery', methods = ['POST'])
+@app.route('/setOrdersSentToDelivery', methods = ['POST'])
 def set_orders_sent_to_delivery():
     data = request.json
     order_id = data['order_id'] 
