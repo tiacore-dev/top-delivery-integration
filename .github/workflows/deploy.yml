@@ -26,5 +26,5 @@ jobs:
 
 
       - name: Update code on server
-        run: ssh -t ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "cd apps/top-delivery-integration && git pull origin master && docker-compose down && docker-compose up -d"
+        run: ssh -t ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "cd apps/top-delivery-integration && git pull origin master && docker compose down && docker compose up -d"
 
