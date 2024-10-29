@@ -1,4 +1,4 @@
 zeep
-puthon-dotenv
+python-dotenv
 requests
 flask
