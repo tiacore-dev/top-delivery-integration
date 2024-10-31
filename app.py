@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import td
 import logging
-
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -40,14 +40,25 @@ def set_orders_final_status():
     auth_data = data['auth']
     order_id = data['order_id']
     bar_code = data['bar_code']
-    status = data['status']
+    work_status = data['work_status']
     # Получаем параметры, если они отсутствуют, будет присвоено значение None или по умолчанию
     deny_type = data.get('deny_type')
-    date_fact_delivery = data.get('date_fact_delivery')
+    #date_fact_delivery = data.get('date_fact_delivery')
+    date_fact_delivery = datetime.now()
     payment_type = data.get('payment_type') 
     client_paid = data.get('client_paid')  
-
-    response = td.set_final_status(auth_data, order_id, bar_code, status, deny_type, date_fact_delivery, payment_type, client_paid)
+    supplier_summary = data.get('supplier_summary')
+    delivery_paid = data.get('delivery_paid')
+    response = td.set_final_status(auth_data,
+                                order_id, 
+                                bar_code, 
+                                date_fact_delivery, 
+                                client_paid, 
+                                work_status, 
+                                delivery_paid, 
+                                supplier_summary,
+                                deny_type, 
+                                payment_type)
     return jsonify(response)
 
 @app.route('/saveScanningResults', methods=['POST'])

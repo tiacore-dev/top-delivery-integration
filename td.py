@@ -62,18 +62,33 @@ def get_order_info(auth_data, order_id):
     return order_info
 
 # 2.3 Передать финальный статус заказа в ТД
-def set_final_status(auth_data, order_id, bar_code, status, deny_type=None, date_fact_delivery=None, payment_type='CARD', client_paid=0):
+def set_final_status(auth_data,
+                     order_id, 
+                     bar_code, 
+                     date_fact_delivery, 
+                     client_paid, 
+                     work_status, 
+                     delivery_paid, 
+                     supplier_summary,
+                     deny_type=None, 
+                     payment_type='CARD'):
     access_code = hashlib.md5(f"{order_id}+{bar_code}".encode()).hexdigest()
-    logger.info(f"Запуск метода set_final_status с параметрами order_id={order_id}, status={status}, deny_type={deny_type}")
+    logger.info(f"Запуск метода set_final_status с параметрами order_id={order_id}, status={work_status}, deny_type={deny_type}")
     response = client.service.setOrdersFinalStatus(
         auth=auth_data, 
         orderId=order_id,
         accessCode=access_code,
-        workStatus={'name': status},
+        workStatus=work_status,
         denyParams={'type': deny_type} if deny_type else None,
-        dateFactDelivery=date_fact_delivery.strftime('%Y-%m-%d') if date_fact_delivery else None,
+        dateFactDelivery=date_fact_delivery.strftime('%Y-%m-%d'),
         paymentType=payment_type,
-        clientPaid=client_paid
+        clientPaid=client_paid,
+        deliveryPaid=delivery_paid,
+        INN=supplier_summary["INN"],
+        jurName=supplier_summary['jurName'],
+        jurAddress= supplier_summary['jurAddress'],
+        commercialName=supplier_summary['commercialName'],
+        phone=supplier_summary['phone']
     )
     logger.info(f"Ответ от set_final_status: {response}")
     return serialize_object(response)
