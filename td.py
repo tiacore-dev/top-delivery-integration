@@ -71,7 +71,7 @@ def set_final_status(auth_data,
                      delivery_paid, 
                      supplier_summary,
                      deny_type=None, 
-                     payment_type='CARD'):
+                     payment_type='CASH'):
     access_code = hashlib.md5(f"{order_id}+{bar_code}".encode()).hexdigest()
     logger.info(f"Запуск метода set_final_status с параметрами order_id={order_id}, status={work_status}, deny_type={deny_type}")
     response = client.service.setOrdersFinalStatus(
@@ -83,12 +83,7 @@ def set_final_status(auth_data,
         dateFactDelivery=date_fact_delivery.strftime('%Y-%m-%d'),
         paymentType=payment_type,
         clientPaid=client_paid,
-        deliveryPaid=delivery_paid,
-        INN=supplier_summary["INN"],
-        jurName=supplier_summary['jurName'],
-        jurAddress= supplier_summary['jurAddress'],
-        commercialName=supplier_summary['commercialName'],
-        phone=supplier_summary['phone']
+        
     )
     logger.info(f"Ответ от set_final_status: {response}")
     return serialize_object(response)
@@ -139,3 +134,12 @@ def set_sent_to_delivery(auth_data, order_id, date_sent_to_delivery, delivery_ty
     return serialize_object(response)
 
 
+
+
+""""
+deliveryPaid=delivery_paid,
+        INN=supplier_summary["INN"],
+        jurName=supplier_summary['jurName'],
+        jurAddress= supplier_summary['jurAddress'],
+        commercialName=supplier_summary['commercialName'],
+        phone=supplier_summary['phone']"""
