@@ -59,8 +59,6 @@ def set_orders_final_status():
                                 date_fact_delivery, 
                                 client_paid, 
                                 work_status, 
-                                delivery_paid, 
-                                supplier_summary,
                                 deny_type, 
                                 payment_type)
     return jsonify(response)
