@@ -106,7 +106,7 @@ def set_final_status(auth_data, webshop_number, date_fact_delivery, client_paid,
     
     
     if work_status['id'] == "5" and deny_params:
-        final_status_params["denyParams"] = {"type": deny_params}
+        final_status_params["denyParams"] = deny_params
 
     logger.info(f"Передаем значения: {final_status_params}")
 
