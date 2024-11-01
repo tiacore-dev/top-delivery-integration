@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import td
 import logging
 from datetime import datetime
+import pytz
 
 app = Flask(__name__)
 
@@ -44,7 +45,10 @@ def set_orders_final_status():
     # Получаем параметры, если они отсутствуют, будет присвоено значение None или по умолчанию
     deny_type = data.get('deny_type')
     #date_fact_delivery = data.get('date_fact_delivery')
-    date_fact_delivery = datetime.now()
+    #date_fact_delivery = datetime.now()
+    # Установка временной зоны Москвы
+    moscow_tz = pytz.timezone("Europe/Moscow")
+    date_fact_delivery = datetime.now(moscow_tz).strftime('%Y-%m-%d')
     payment_type = data.get('payment_type') 
     client_paid = data.get('client_paid')  
     supplier_summary = data.get('supplier_summary')
