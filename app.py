@@ -35,36 +35,37 @@ def get_order_info():
     order_info = td.get_order_info(auth_data, order_id)
     return jsonify(order_info)
 
+@app.route('/getOrdersInfoWebshop', methods = ['POST'])
+def get_order_info_by_webshop():
+    data = request.json
+    webshop_number=data['webshop_number']
+    auth_data = data['auth']
+    order_info = td.get_order_info_by_webshop(auth_data, webshop_number)
+    return jsonify(order_info)
+
+
 @app.route('/setOrdersFinalStatus', methods=['POST'])
 def set_orders_final_status():
     data = request.json
     auth_data = data['auth']
-    order_id = data['order_id']
-    bar_code = data['bar_code']
-    work_status = data['work_status']
+    work_status = data.get('work_status')
     webshop_number = data.get('webshop_number')
     # Получаем параметры, если они отсутствуют, будет присвоено значение None или по умолчанию
-    deny_type = data.get('deny_type')
-    #date_fact_delivery = data.get('date_fact_delivery')
-    #date_fact_delivery = datetime.now()
+    deny_params = data.get('deny_params')
     # Установка временной зоны Москвы
     moscow_tz = pytz.timezone("Europe/Moscow")
     date_fact_delivery = datetime.now(moscow_tz).strftime('%Y-%m-%d')
     payment_type = data.get('payment_type') 
     client_paid = data.get('client_paid')  
-    supplier_summary = data.get('supplier_summary')
     delivery_paid = data.get('delivery_paid')
     response = td.set_final_status(auth_data,
-                                    order_id,
-                                    bar_code,
-                                    webshop_number, 
+                                    webshop_number,
                                     date_fact_delivery, 
                                     client_paid, 
                                     work_status, 
-                                    delivery_paid, 
-                                    supplier_summary, 
-                                    deny_type,
-                                    payment_type)
+                                    delivery_paid,
+                                    payment_type,
+                                    deny_params)
     return jsonify(response)
 
 @app.route('/saveScanningResults', methods=['POST'])

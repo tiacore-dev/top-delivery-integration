@@ -61,11 +61,33 @@ def get_order_info(auth_data, order_id):
     order_info = serialize_dates(order_info)
     return order_info
 
+def get_order_id(auth_data, webshop_number):
+    data=get_order_info_by_webshop(auth_data, webshop_number)
+    # Извлечение значений
+    order_info = data.get("orderInfo", [])[0]  # Получаем первый элемент из списка orderInfo
+    order_identity = order_info.get("orderIdentity")
+    order_id=order_identity['otderId']
+    bar_code = order_identity['barcode']
+    return order_id, bar_code
+
+
+# Получить детальную информацию по каждому заказу
+def get_order_info_by_webshop(auth_data, webshop_number):
+    logger.info(f"Запуск метода get_order_info с параметром webshop_number={webshop_number}")
+    order = {"webshopNumber": webshop_number}  # Изменено: убрали вложенность
+    response = client.service.getOrdersByParams(auth=auth_data, orderIdentity=order)
+    logger.info(f"Ответ от get_order_info: {response}")
+    order_info = serialize_object(response)
+    order_info = serialize_dates(order_info)
+    return order_info
+
+
 # 2.3 Передать финальный статус заказа в ТД
-def set_final_status(auth_data, order_id, bar_code,webshop_number, date_fact_delivery, client_paid, work_status, delivery_paid, supplier_summary, deny_type=None, payment_type='CASH'):
-    code=bar_code.split('*')
+def set_final_status(auth_data, webshop_number, date_fact_delivery, client_paid, work_status, delivery_paid, payment_type, deny_params=None):
+    
+    order_id, bar_code=get_order_id(auth_data, webshop_number)
     access_code = hashlib.md5(f"{str(order_id)}+{bar_code}".encode()).hexdigest()
-    logger.info(f"Запуск метода set_final_status с параметрами order_id={order_id}, workStatus={work_status}, deny_type={deny_type}")
+    logger.info(f"Запуск метода set_final_status с параметрами order_id={order_id}, workStatus={work_status},")
     
     # Формируем параметры finalStatusParams с вложенными значениями
     final_status_params = {
@@ -80,11 +102,13 @@ def set_final_status(auth_data, order_id, bar_code,webshop_number, date_fact_del
         "paymentType": payment_type,
         "clientPaid": client_paid,
         "deliveryPaid": delivery_paid
-        #"supplierSummary": supplier_summary
-        
     }
-    logger.info(f"Передаем значения: {final_status_params}")
     
+    
+    if work_status['id'] == "5" and deny_params:
+        final_status_params["denyParams"] = {"type": deny_params}
+
+    logger.info(f"Передаем значения: {final_status_params}")
 
     # Вызываем метод API, передавая finalStatusParams в формате массива
     response = client.service.setOrdersFinalStatus(
