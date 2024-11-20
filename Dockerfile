@@ -14,8 +14,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копируем весь код приложения в рабочую директорию
 COPY . .
 
-# Указываем, что контейнер будет слушать на порту 5000
-EXPOSE 5055
+# Устанавливаем Gunicorn
+RUN pip install gunicorn
 
-# Указываем команду для запуска приложения
-CMD ["python", "app.py"]

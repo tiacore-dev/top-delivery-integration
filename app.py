@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
 import td
 import logging
-from datetime import datetime
-import pytz
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -103,5 +105,7 @@ def set_orders_sent_to_delivery():
     return jsonify(response)
 
 
+port = os.getenv('FLASK_PORT')
+
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=port)
