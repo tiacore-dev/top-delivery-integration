@@ -69,10 +69,19 @@ def get_order_info(auth_data, order_id):
 def get_order_id(auth_data, webshop_number):
     try:
         data = get_order_info_by_webshop(auth_data, webshop_number)
+        if not data or 'orderInfo' not in data:
+            raise ValueError("Данные orderInfo отсутствуют в ответе")
+        
         order_info = data.get("orderInfo", [])[0]
         order_identity = order_info.get("orderIdentity")
-        order_id = order_identity['otderId']
+        
+        if not order_identity:
+            raise ValueError("Данные orderIdentity отсутствуют в orderInfo")
+        
+        # Исправлено: правильное имя ключа
+        order_id = order_identity['orderId']  
         bar_code = order_identity['barcode']
+        
         return order_id, bar_code
     except Exception as e:
         logger.error(f"Ошибка в get_order_id: {e}", exc_info=True)
@@ -119,10 +128,10 @@ def set_final_status(auth_data, webshop_number, date_fact_delivery, client_paid,
             finalStatusParams=[final_status_params]
         )
         logger.info(f"Ответ от set_final_status: {response}")
-        return serialize_object(response)
+        return serialize_object(response), 200
     except Exception as e:
         logger.error(f"Ошибка в set_final_status: {e}", exc_info=True)
-        return None
+        return None, 500
 
 # 2.4 Сохранить результат приема на складе
 def save_scanning_results(auth_data, shipment_id, orders):
