@@ -6,7 +6,7 @@ services:
     build: .
     ports:
       - "${FLASK_PORT}:${FLASK_PORT}"
-    command: gunicorn -c gunicorn.conf.py run:app
+    command: gunicorn -c gunicorn.conf.py app:app
 
     volumes:
       - .:/app
