@@ -53,8 +53,8 @@ def set_orders_final_status():
     # Получаем параметры, если они отсутствуют, будет присвоено значение None или по умолчанию
     deny_params = data.get('deny_params')
     # Установка временной зоны Москвы
-    moscow_tz = pytz.timezone("Europe/Moscow")
-    date_fact_delivery = datetime.now(moscow_tz).strftime('%Y-%m-%d')
+    #moscow_tz = pytz.timezone("Europe/Moscow")
+    date_fact_delivery = data.get('date_fact_delivery')
     payment_type = data.get('payment_type') 
     client_paid = data.get('client_paid')  
     delivery_paid = data.get('delivery_paid')
