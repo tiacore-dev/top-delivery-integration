@@ -35,10 +35,10 @@ def get_shipments(auth_data, id):
         logger.info(f"Ответ от get_shipments: {response}")
         shipments = serialize_object(response)
         shipments = serialize_dates(shipments)
-        return shipments
+        return shipments, 200
     except Exception as e:
         logger.error(f"Ошибка в get_shipments: {e}", exc_info=True)
-        return None
+        return None, 500
 
 # 2.2 Получить список заказов для каждого отправления
 def get_orders(auth_data, shipment_id):
@@ -48,10 +48,10 @@ def get_orders(auth_data, shipment_id):
         logger.info(f"Ответ от get_orders: {response}")
         orders = serialize_object(response)
         orders = serialize_dates(orders)
-        return orders
+        return orders, 200
     except Exception as e:
         logger.error(f"Ошибка в get_orders: {e}", exc_info=True)
-        return None
+        return None, 500
 
 # Получить детальную информацию по каждому заказу
 def get_order_info(auth_data, order_id):
@@ -144,16 +144,42 @@ def save_scanning_results(auth_data, shipment_id, orders):
         logger.error(f"Ошибка в save_scanning_results: {e}", exc_info=True)
         return None
 
-# 2.5 Установить статус проблемности заказу
-def set_problem_status(auth_data, order_id, problem_status, note=""):
+def set_problem_status(auth_data, webshop_number, problem_status, note=""):
     try:
+        # Получение order_id
+        order_id = get_order_id(auth_data, webshop_number)
+        if not order_id:
+            raise ValueError(f"Заказ с webshop_number={webshop_number} не найден")
+
+        # Логирование перед вызовом API
         logger.info(f"Запуск метода set_problem_status с параметрами order_id={order_id}, problem_status={problem_status}, note={note}")
-        response = client.service.setOrderProblemStatus(auth=auth_data, orderId=order_id, problemStatus=problem_status, note=note)
+
+        # Вызов API
+        response = client.service.setOrderProblemStatus(
+            auth=auth_data,
+            #orderId=order_id,
+            problemOrders={"orderIdentity": order_id},
+            problemStatus=problem_status,
+            note=note
+        )
+
+        # Логирование ответа
         logger.info(f"Ответ от set_problem_status: {response}")
-        return serialize_object(response)
+
+        # Проверка на ошибки в ответе
+        if not response or response.get('status') != 'success':
+            raise RuntimeError(f"Ошибка при установке статуса проблемности: {response}")
+
+        # Возврат успешного результата
+        return serialize_object(response), 200
+
+    except ValueError as ve:
+        logger.error(f"Ошибка валидации данных: {ve}")
+        return {"error": str(ve)}, 400
     except Exception as e:
         logger.error(f"Ошибка в set_problem_status: {e}", exc_info=True)
-        return None
+        return {"error": "Internal Server Error"}, 500
+
 
 # 2.6 Установить статус заказа "выдан на доставку"
 def set_sent_to_delivery(auth_data, order_id, date_sent_to_delivery, delivery_type=None, service_id=None, delivery_params=None):
@@ -173,4 +199,4 @@ def set_sent_to_delivery(auth_data, order_id, date_sent_to_delivery, delivery_ty
         return serialize_object(response)
     except Exception as e:
         logger.error(f"Ошибка в set_sent_to_delivery: {e}", exc_info=True)
-        return None
+        return None, 500
