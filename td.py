@@ -3,8 +3,8 @@ import logging
 import hashlib
 from zeep.helpers import serialize_object
 import zeep
-import requests
 from zeep.transports import Transport
+import requests
 from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
 from utils import serialize_dates
