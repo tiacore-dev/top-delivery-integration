@@ -126,7 +126,7 @@ def get_order_info_by_barcode(auth_data, barcode):
         order = {"barcode": barcode}
         response = client.service.getOrdersByParams(
             auth=auth_data, orderIdentity=order)
-        logger.info(f"Ответ от get_order_info_by_barcode: {response}")
+        # logger.info(f"Ответ от get_order_info_by_barcode: {response}")
         order_info = serialize_object(response)
         order_info = serialize_dates(order_info)
         return order_info

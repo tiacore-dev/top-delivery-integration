@@ -98,8 +98,8 @@ def get_order_info_by_webshop():
     return jsonify(order_info)
 
 
+# @log_request_response
 @routes_bp.route('/getOrdersInfoBarcode', methods=['POST'])
-@log_request_response
 def get_order_info_by_barcode():
     data = request.json
     if not data or 'auth' not in data or 'barcode' not in data:
