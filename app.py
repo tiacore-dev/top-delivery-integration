@@ -1,3 +1,4 @@
+from functools import wraps
 import logging
 import os
 from dotenv import load_dotenv
@@ -45,6 +46,7 @@ def handle_general_error(e):
 
 
 def log_request_response(func):
+    @wraps(func)
     def wrapper(*args, **kwargs):
         logger.info(f"Вызов {func.__name__}: {request.json}")
         response = func(*args, **kwargs)
