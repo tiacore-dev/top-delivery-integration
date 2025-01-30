@@ -129,6 +129,7 @@ def set_orders_final_status():
         delivery_paid = data.get('delivery_paid')
 
         if not (order_id or barcode or webshop_number):
+            logging.error("No data provided.")
             return jsonify({"msg": "Error: no data"}), 400
 
         response = td.set_final_status(auth_data, order_id, barcode, webshop_number, date_fact_delivery,

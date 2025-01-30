@@ -139,21 +139,42 @@ def get_order_info_by_barcode(auth_data, barcode):
 
 def set_final_status(auth_data, order_id, barcode, webshop_number, date_fact_delivery, client_paid, work_status, delivery_paid, payment_type, deny_params=None):
     try:
+        logger.info("Запуск set_final_status")
+        logger.debug(f"Входные параметры: order_id={order_id}, barcode={barcode}, webshop_number={webshop_number}, "
+                     f"date_fact_delivery={date_fact_delivery}, client_paid={
+                         client_paid}, work_status={work_status}, "
+                     f"delivery_paid={delivery_paid}, payment_type={payment_type}, deny_params={deny_params}")
+
         if order_id:
+            logger.info(f"Получение информации по заказу: order_id={order_id}")
             data = get_order_info(auth_data, order_id)
-            order_info = data.get("orderInfo", [])[0]
-            order_identity = order_info.get("orderIdentity")
-            bar_code = order_identity['barcode']
-            webshop_number = order_identity['webshopNumber']
+            order_info = data.get("orderInfo", [])
+            if not order_info:
+                raise ValueError(
+                    "Пустой ответ orderInfo при запросе информации о заказе")
+            order_info = order_info[0]
+            order_identity = order_info.get("orderIdentity", {})
+            bar_code = order_identity.get('barcode')
+            webshop_number = order_identity.get('webshopNumber')
+            if not bar_code or not webshop_number:
+                raise ValueError(
+                    "Ошибка получения barcode или webshopNumber из order_identity")
+
         else:
+            logger.info(f"""Получение order_id по webshop_number={
+                        webshop_number}, barcode={barcode}""")
             order_id, bar_code, webshop_number = get_order_id(
                 auth_data, webshop_number, barcode)
+
         if not order_id:
+            logger.error("Не удалось получить order_id или barcode")
             raise ValueError("Не удалось получить order_id или barcode")
+
         access_code = hashlib.md5(
             f"{str(order_id)}+{bar_code}".encode()).hexdigest()
-        logger.info(f"""Запуск метода set_final_status с параметрами order_id={
-                    order_id}, workStatus={work_status},""")
+
+        logger.info(f"""Запуск метода set_final_status с order_id={
+                    order_id}, workStatus={work_status}""")
         final_status_params = {
             "orderIdentity": {
                 "orderId": order_id,
@@ -167,17 +188,29 @@ def set_final_status(auth_data, order_id, barcode, webshop_number, date_fact_del
             "clientPaid": client_paid,
             "deliveryPaid": delivery_paid
         }
-        if work_status['id'] == "5" and deny_params:
+
+        if work_status.get('id') == "5" and deny_params:
+            logger.info(f"Добавление denyParams: {deny_params}")
             final_status_params["denyParams"] = deny_params
+
+        logger.debug(f"""Отправка данных в setOrdersFinalStatus: {
+                     final_status_params}""")
         response = client.service.setOrdersFinalStatus(
             auth=auth_data,
             finalStatusParams=[final_status_params]
         )
-        logger.info(f"Ответ от set_final_status: {response}")
+
+        logger.info(f"Ответ от setOrdersFinalStatus: {response}")
         return serialize_object(response), 200
+
+    except ValueError as ve:
+        logger.error(f"Ошибка валидации данных: {ve}", exc_info=True)
+        return {"error": str(ve)}, 400
+
     except Exception as e:
         logger.error(f"Ошибка в set_final_status: {e}", exc_info=True)
         return None, 500
+
 
 # 2.4 Сохранить результат приема на складе
 
