@@ -141,8 +141,8 @@ def set_final_status(auth_data, order_id, barcode, webshop_number, date_fact_del
     try:
         logger.info("Запуск set_final_status")
         logger.debug(f"Входные параметры: order_id={order_id}, barcode={barcode}, webshop_number={webshop_number}, "
-                     f"date_fact_delivery={date_fact_delivery}, client_paid={
-                         client_paid}, work_status={work_status}, "
+                     f"""date_fact_delivery={date_fact_delivery}, client_paid={
+                         client_paid}, work_status={work_status}, """
                      f"delivery_paid={delivery_paid}, payment_type={payment_type}, deny_params={deny_params}")
 
         if order_id:
