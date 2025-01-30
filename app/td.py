@@ -26,12 +26,12 @@ client = zeep.Client(wsdl=wsdl_url, transport=Transport(session=session))
 # 2.1 Получить все отправления заказов, которые ушли со склада ТД, но еще не приняты
 
 
-def get_shipments(auth_data, id):
+def get_shipments(auth_data, receiver_id):
     try:
         logger.info("Запуск метода get_shipments")
         response = client.service.getShipmentsByParams(
             auth=auth_data,
-            shipmentDirection={'receiverId': id},
+            shipmentDirection={'receiverId': receiver_id},
             shipmentStatus={'id': '3'}
         )
         logger.info(f"Ответ от get_shipments: {response}")

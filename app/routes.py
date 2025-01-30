@@ -1,13 +1,7 @@
 from functools import wraps
 import logging
-import os
-from dotenv import load_dotenv
-from flask import Flask, request, jsonify
-import td
-
-load_dotenv()
-
-app = Flask(__name__)
+from flask import request, jsonify, Blueprint
+import app.td as td
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO,
@@ -15,6 +9,7 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 # Кастомные исключения
+routes_bp = Blueprint('routes', __name__)
 
 
 class DataValidationError(Exception):
@@ -25,19 +20,19 @@ class AuthenticationError(Exception):
     """Ошибка авторизации"""
 
 
-@app.errorhandler(DataValidationError)
+@routes_bp.errorhandler(DataValidationError)
 def handle_data_validation_error(e):
     logger.error(f"Ошибка валидации данных: {e}")
     return jsonify({"error": str(e)}), 400
 
 
-@app.errorhandler(AuthenticationError)
+@routes_bp.errorhandler(AuthenticationError)
 def handle_authentication_error(e):
     logger.error(f"Ошибка авторизации: {e}")
     return jsonify({"error": str(e)}), 401
 
 
-@app.errorhandler(Exception)
+@routes_bp.errorhandler(Exception)
 def handle_general_error(e):
     logger.exception(f"Внутренняя ошибка сервера: {e}")
     return jsonify({"error": "Internal Server Error"}), 500
@@ -47,15 +42,15 @@ def handle_general_error(e):
 
 def log_request_response(func):
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrroutes_bper(*args, **kwargs):
         logger.info(f"Вызов {func.__name__}: {request.json}")
         response = func(*args, **kwargs)
         logger.info(f"Ответ {func.__name__}: {response.get_json()}")
         return response
-    return wrapper
+    return wrroutes_bper
 
 
-@app.route('/getShipmentsByParams', methods=['POST'])
+@routes_bp.route('/getShipmentsByParams', methods=['POST'])
 @log_request_response
 def get_shipment():
     data = request.json
@@ -67,7 +62,7 @@ def get_shipment():
     return jsonify(response)
 
 
-@app.route('/getOrdersByParams', methods=['POST'])
+@routes_bp.route('/getOrdersByParams', methods=['POST'])
 @log_request_response
 def get_orders_by_params():
     data = request.json
@@ -79,7 +74,7 @@ def get_orders_by_params():
     return jsonify(orders)
 
 
-@app.route('/getOrdersInfo', methods=['POST'])
+@routes_bp.route('/getOrdersInfo', methods=['POST'])
 @log_request_response
 def get_order_info():
     data = request.json
@@ -91,7 +86,7 @@ def get_order_info():
     return jsonify(order_info)
 
 
-@app.route('/getOrdersInfoWebshop', methods=['POST'])
+@routes_bp.route('/getOrdersInfoWebshop', methods=['POST'])
 @log_request_response
 def get_order_info_by_webshop():
     data = request.json
@@ -103,7 +98,7 @@ def get_order_info_by_webshop():
     return jsonify(order_info)
 
 
-@app.route('/getOrdersInfoBarcode', methods=['POST'])
+@routes_bp.route('/getOrdersInfoBarcode', methods=['POST'])
 @log_request_response
 def get_order_info_by_barcode():
     data = request.json
@@ -115,18 +110,38 @@ def get_order_info_by_barcode():
     return jsonify(order_info)
 
 
-@app.route('/setOrdersFinalStatus', methods=['POST'])
+@routes_bp.route('/setOrdersFinalStatus', methods=['POST'])
 @log_request_response
 def set_orders_final_status():
-    data = request.json
-    if not data or 'auth' not in data:
-        raise DataValidationError("auth обязателен")
-    auth_data = data['auth']
-    response = td.set_final_status(auth_data, **data)
-    return jsonify(response)
+    try:
+        data = request.json
+        if not data or 'auth' not in data or 'webshop_number' not in data:
+            raise DataValidationError("auth и webshop_number обязательны")
+        auth_data = data['auth']
+        work_status = data.get('work_status')
+        webshop_number = data.get('webshop_number', None)
+        order_id = data.get('order_id', None)
+        barcode = data.get('barcode', None)
+        deny_params = data.get('deny_params', None)
+        date_fact_delivery = data.get('date_fact_delivery')
+        payment_type = data.get('payment_type')
+        client_paid = data.get('client_paid')
+        delivery_paid = data.get('delivery_paid')
+
+        if not (order_id or barcode or webshop_number):
+            return jsonify({"msg": "Error: no data"}), 400
+
+        response = td.set_final_status(auth_data, order_id, barcode, webshop_number, date_fact_delivery,
+                                       client_paid, work_status, delivery_paid, payment_type, deny_params)
+        return jsonify(response)
+    except DataValidationError as e:
+        raise e
+    except Exception as e:
+        logger.exception("Ошибка при обработке setOrdersFinalStatus")
+        raise e
 
 
-@app.route('/saveScanningResults', methods=['POST'])
+@routes_bp.route('/saveScanningResults', methods=['POST'])
 @log_request_response
 def save_scanning_results():
     data = request.json
@@ -139,7 +154,7 @@ def save_scanning_results():
     return jsonify(response)
 
 
-@app.route('/setOrderProblemStatus', methods=['POST'])
+@routes_bp.route('/setOrderProblemStatus', methods=['POST'])
 @log_request_response
 def set_order_problem_status():
     data = request.json
@@ -155,7 +170,7 @@ def set_order_problem_status():
     return jsonify(response)
 
 
-@app.route('/setOrdersSentToDelivery', methods=['POST'])
+@routes_bp.route('/setOrdersSentToDelivery', methods=['POST'])
 @log_request_response
 def set_orders_sent_to_delivery():
     data = request.json
@@ -165,10 +180,3 @@ def set_orders_sent_to_delivery():
     auth_data = data['auth']
     response = td.set_sent_to_delivery(auth_data, **data)
     return jsonify(response)
-
-
-port = os.getenv('FLASK_PORT')
-
-if __name__ == "__main__":
-    logger.info(f"Запуск сервера Flask на порту {port}")
-    app.run(debug=True, host='0.0.0.0', port=int(port))

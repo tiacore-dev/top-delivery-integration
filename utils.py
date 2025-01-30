@@ -1,14 +1,20 @@
 from datetime import datetime, date, time
 
 # Преобразуем объект времени в строку
+
+
 def time_to_string(time_obj):
     return time_obj.strftime('%H:%M:%S') if time_obj else None
 
 # Преобразуем объект даты в строку
+
+
 def date_to_string(date_obj):
     return date_obj.strftime('%Y-%m-%d') if date_obj else None
 
 # Рекурсивная функция для преобразования всех datetime объектов
+
+
 def serialize_dates(obj):
     if isinstance(obj, dict):
         return {key: serialize_dates(value) for key, value in obj.items()}
