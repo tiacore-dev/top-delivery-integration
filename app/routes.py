@@ -115,8 +115,8 @@ def get_order_info_by_barcode():
 def set_orders_final_status():
     try:
         data = request.json
-        if not data or 'auth' not in data or 'webshop_number' not in data:
-            raise DataValidationError("auth и webshop_number обязательны")
+        if not data or 'auth' not in data:
+            raise DataValidationError("auth обязательны")
         auth_data = data['auth']
         work_status = data.get('work_status')
         webshop_number = data.get('webshop_number', None)
