@@ -105,36 +105,23 @@ def get_order_id(auth_data, webshop_number, barcode):
 
 def get_order_info_by_webshop(auth_data, webshop_number):
     try:
-        logger.info(f"""Запуск метода get_order_info_by_webshop с параметром webshop_number={
-                    webshop_number}""")
-        order = {"webshopNumber": webshop_number}
-        response = client.service.getOrdersByParams(
-            auth=auth_data, orderIdentity=order)
-        logger.info(f"Ответ от get_order_info_by_webshop: {response}")
-        order_info = serialize_object(response)
-        order_info = serialize_dates(order_info)
-        return order_info
+        order_id, _, _ = get_order_id(
+            auth_data, webshop_number=webshop_number, barcode=None)
+        info = get_order_info(auth_data, order_id)
     except Exception as e:
-        logger.error(f"Ошибка в get_order_info_by_webshop: {e}", exc_info=True)
+        logger.error(f"Ошибка в get_order_info: {e}", exc_info=True)
         return None
 
 
 def get_order_info_by_barcode(auth_data, barcode):
     try:
-        logger.info(f"""Запуск метода get_order_info_by_barcode с параметром barcode={
-                    barcode}""")
-        order = {"barcode": barcode}
-        response = client.service.getOrdersByParams(
-            auth=auth_data, orderIdentity=order)
-        # logger.info(f"Ответ от get_order_info_by_barcode: {response}")
-        order_info = serialize_object(response)
-        order_info = serialize_dates(order_info)
-        return order_info
+        order_id, _, _ = get_order_id(
+            auth_data, webshop_number=None, barcode=barcode)
+        info = get_order_info(auth_data, order_id)
+        return info
     except Exception as e:
-        logger.error(f"Ошибка в get_order_info_by_barcode: {e}", exc_info=True)
+        logger.error(f"Ошибка в get_order_info: {e}", exc_info=True)
         return None
-
-# 2.3 Передать финальный статус заказа в ТД
 
 
 def set_final_status(auth_data, order_id, barcode, webshop_number, date_fact_delivery, client_paid, work_status, delivery_paid, payment_type, deny_params=None):
